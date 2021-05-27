@@ -9,6 +9,11 @@ environ.Env.read_env()
 
 SECRET_KEY = env("SECRET_KEY")
 
+CORS_ORIGIN_WHITELIST = (
+    env("CORS_ORIGIN_WHITELIST_HOST"),
+)
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',

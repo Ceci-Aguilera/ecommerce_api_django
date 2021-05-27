@@ -19,3 +19,9 @@ Environment variables for development.py had been set in the .env file inside th
 ### Readme files
 
 Inside the Readme folder of each app are the Readme-{some topic}.md files of the app.
+
+### Project Apps
+
+- The ecommerce_backend manages the client iteration with the products of the store, i.e., view a product, add it to the cart, buy it, apply for refund and coupons. It also handles all related to payments and store services.
+
+- The eccommerce_accounts_app manages the user-client operations such as login/out, sign up and edit user credentials and data of the user account and also view its orders. This also manages the admin (store owner) account and allows it to make CRUD operations over the products (and models as Category, Coupons, Orders, Refunds, ...) of the store.
