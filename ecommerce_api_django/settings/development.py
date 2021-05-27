@@ -9,10 +9,21 @@ environ.Env.read_env()
 
 SECRET_KEY = env("SECRET_KEY")
 
-CORS_ORIGIN_WHITELIST = (
-    env("CORS_ORIGIN_WHITELIST_HOST"),
-)
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = ['localhost:3000', "127.0.0.1:3000"]
+CORS_ORIGIN_ALLOW_ALL = True
 
 DATABASES = {
     'default': {

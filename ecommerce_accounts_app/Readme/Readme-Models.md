@@ -13,4 +13,4 @@ The fields related to __uid__ and __token__ are necessary for resetting password
 
 The __is_active__ prop is only set to __True__ ones the user has been authenticated.
 
-This app does NOT use the default authentication method of DRF neither the allauth's one. Instead, the authentication method is manually configured and uses the email address of the client and the __uid__ and __token__ four properties of the user model.
+This app does NOT use the default authentication method of DRF neither the allauth's one for registering a new user. Instead, the authentication method for this particular task is manually configured and uses the email address of the client and the __uid__ and __token__ four properties of the user model.

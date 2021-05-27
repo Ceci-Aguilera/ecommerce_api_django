@@ -55,7 +55,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = False
+# CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'ecommerce_api_django.urls'
 
@@ -145,3 +146,14 @@ MEDIA_ROOT = os.path.join(ROOT_BASE_DIR, 'media')
 #         'rest_framework.parsers.MultiPartParser',
 #     ]
 # }
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}
+
+CORS_ORIGIN_ALLOW_ALL = True
