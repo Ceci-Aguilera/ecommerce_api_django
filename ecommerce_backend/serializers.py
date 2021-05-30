@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Category, Product
+from .models import User, Category, Product, Address
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,3 +20,9 @@ class ProductSerializerNoDesciption(serializers.ModelSerializer):
     class Meta:
         model = Product
         exclude = ['description']
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Address
+        exclude = ['user']

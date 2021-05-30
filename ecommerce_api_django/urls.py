@@ -25,7 +25,7 @@ from ecommerce_accounts_app.views import GetCSRFToken
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^$', HomeViewAPI, name='home-view-api'),
-    url(r'^csrf$', GetCSRFToken, name='csrf-api'),
+    url(r'^csrf$', GetCSRFToken.as_view(), name='csrf-api'),
     url(r'^ecommerce-api/', include('ecommerce_backend.urls', namespace='ecommerce-backend-api')),
     url(r'^accounts-api/', include('ecommerce_accounts_app.urls', namespace='ecommerce-accounts-api')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

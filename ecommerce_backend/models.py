@@ -158,7 +158,7 @@ class Address(models.Model):
     default = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.email + "-" + address_type
+        return self.user.email + "-" + self.address_type
 
     class Meta:
         verbose_name_plural = 'Addresses'
