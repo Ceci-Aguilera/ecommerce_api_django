@@ -26,3 +26,14 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         exclude = ['user']
+
+
+class ProductSerializer(serializers.ModelSerializer):
+
+    image = serializers.ImageField(use_url=True)
+    pk = serializers.IntegerField(min_value=0, max_value=None)
+    category = CategorySerializerOnlyName(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = '__all__'

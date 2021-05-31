@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'ecommerce_backend',
     'ecommerce_accounts_app',
+    'ecommerce_administration_app',
 ]
 
 AUTH_USER_MODEL = 'ecommerce_accounts_app.User'
