@@ -52,26 +52,36 @@ class Product(models.Model):
 # ==============================================================================
 class OrderItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True)
-    quatity = models.IntegerField(default=1)
+    quantity = models.IntegerField(default=1)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     ordered = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.quatity} of {self.product.title}"
+        helper = 'Deleted object'
+        if self.product is not None:
+            helper = self.product.title
+        return f"{self.quantity} of {helper}"
 
     def get_total_product_price(self):
-        return self.quantity * self.product.price
+        if self.product is not None:
+            return self.quantity * self.product.price
+        return 0
 
     def get_total_discount_product_price(self):
-        return self.quantity * self.product.discount_price
-
-    def get_amount_saved(self):
         return self.get_total_product_price() - self.get_total_discount_product_price()
 
+
+    def get_amount_saved(self):
+        if self.product is not None:
+            return self.quantity * self.product.discount_price
+        return 0
+
     def get_final_price(self):
-        if self.product.discount_price:
-            return self.get_total_discount_product_price()
-        return self.get_total_product_price()
+        if self.product is not None:
+            if self.product.discount_price:
+                return self.get_total_discount_product_price()
+            return self.get_total_product_price()
+        return 0
 
 
 
@@ -85,7 +95,7 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     items = models.ManyToManyField(OrderItem)
     start_date = models.DateTimeField(auto_now_add=True)
-    ordered_date = models.DateTimeField()
+    ordered_date = models.DateTimeField(auto_now_add=True)
     ordered = models.BooleanField(default=False)
     shipping_address = models.ForeignKey(
         'Address', related_name='shipping_address', on_delete=models.SET_NULL, blank=True, null=True)
@@ -101,7 +111,7 @@ class Order(models.Model):
     refund_granted = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.email
+        return self.user.email + '-' + str(self.start_date)
 
     def get_total_cost(self):
         total_cost = 0.0

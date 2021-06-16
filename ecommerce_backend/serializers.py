@@ -49,6 +49,33 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     product=ProductSerializer(read_only=True)
     user=UserCRUDSerializer(read_only=True)
+    total_product_price = serializers.SerializerMethodField('get_total_product_price')
+    total_discount_product_price = serializers.SerializerMethodField('get_total_discount_product_price')
+    amount_saved = serializers.SerializerMethodField('get_amount_saved')
+    final_price = serializers.SerializerMethodField('get_final_price')
+
+    def get_total_product_price(self, obj):
+        if obj.product is not None:
+            return obj.quantity * obj.product.price
+        return 0
+
+    def get_total_discount_product_price(self, obj):
+        if obj.product is not None:
+            return (obj.quantity * obj.product.price) - (obj.quantity * obj.product.discount_price)
+        return 0
+
+
+    def get_amount_saved(self, obj):
+        if obj.product is not None:
+            return obj.quantity * obj.product.discount_price
+        return 0
+
+    def get_final_price(self, obj):
+        if obj.product is not None:
+            if obj.product.discount_price:
+                return (obj.quantity * obj.product.price) - (obj.quantity * obj.product.discount_price)
+            return (obj.quantity * obj.product.price)
+        return 0
 
     class Meta:
         model=OrderItem

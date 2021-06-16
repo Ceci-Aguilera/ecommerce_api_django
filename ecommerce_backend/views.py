@@ -29,20 +29,19 @@ def add_to_cart(request, productItem):
     try:
         user = request.user
         if user is not None:
-            order, created = Order.objects().get_or_create(
-                user = request.user,
+            order, created = Order.objects.get_or_create(
+                user = user,
                 ordered = False
             )
             #Check if item was already added before
-            if OrderItem.order_set.filter(pk=order.pk).exists():
-
-                product_base = productItem.product
-                old_ordered_item = OrderItem.objects.filter(
-                    product__title=product_base.title,
-                    order__pk = order.pk
-                )
-                productItem.quantity += product_base.quantity
-                product_base.delete()
+            for eachProduct in order.items.all():
+                if eachProduct.product == productItem.product:
+                    quantity = eachProduct.quantity + productItem.quantity
+                    productItem.quantity = max(0, quantity)
+                    productItem.save()
+                    eachProduct.order_set.remove()
+                    eachProduct.delete()
+                    break
 
             order.items.add(productItem)
             result='Success'
@@ -94,7 +93,7 @@ class ProductDetail(APIView):
         serializer.is_valid(raise_exception=True)
         try:
             orderItem = serializer.save(user=request.user, product=product)
-            result = add_to_cart(request=request, productItem=ProductItem)
+            result = add_to_cart(request=request, productItem=orderItem)
             status_result = status.HTTP_201_CREATED if result=='Success' else status.HTTP_400_BAD_REQUEST
             return Response({"Add to cart result": result}, status=status_result)
         except:
@@ -116,8 +115,9 @@ class CartView(APIView):
 
     permission_classes = [permissions.IsAuthenticated,]
 
-    def get(self, request, pk, *args, **kwargs):
-        order = Order.objects.all().filter(
+    def get(self, request,*args, **kwargs):
+        pk = self.request.user.pk
+        order = Order.objects.all().get(
             user__pk = pk,
             ordered=False
         )
@@ -126,16 +126,24 @@ class CartView(APIView):
         return Response(orderToJson, status=status.HTTP_201_CREATED)
 
 
-    def post(self, request, pk, *args, **kwargs):
-        order = Order.objects.all().filter(
+    def post(self, request,*args, **kwargs):
+        pk = self.request.user.pk
+        order = Order.objects.all().get(
             user__pk = pk,
             ordered=False
         )
         item_to_delete = request.data["item_to_delete"]
+        product_pk = item_to_delete['product']['pk']
+        product = Product.objects.get(pk=product_pk)
         item_to_delete = OrderItemSerializer(data=item_to_delete, context={'request':request})
         if item_to_delete.is_valid(raise_exception=True):
-            item_to_delete.save()
-            item_to_delete.delete()
+
+            item_to_delete = item_to_delete.save(user=request.user, product=product)
+
+            for item in order.items.all():
+                if item.product == item_to_delete.product:
+                    item.order_set.remove()
+                    item.delete()
             return Response(
                 {"Delete Item from cart":"Success"},
                 status=status.HTTP_201_CREATED,
@@ -146,10 +154,15 @@ class CartView(APIView):
         )
 
 
-    def delete(self, request, pk, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
+        pk = self.request.user.pk
+        order = Order.objects.all().get(
+            user__pk = pk,
+            ordered=False
+        )
+
         try:
-            order = Order.objects.get(pk=pk)
-            items = order.items
+            items = order.items.all()
             for item in items:
                 item.order_set.remove()
                 item.delete()

@@ -37,7 +37,12 @@ class CheckAuthenticatedView(RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
-
+# class CheckAuthenticatedView(APIView):
+#
+#     def get(self, request, format=None):
+#         print("JSNDJSNDJSDN")
+#         print(self.request.headers['authorization'])
+#         return Response({}, status=status.HTTP_200_OK)
 
 
 class LoginView(GenericAPIView):
@@ -66,6 +71,7 @@ class LoginView(GenericAPIView):
                     user,
                     context=self.get_serializer_context()).data
                 result['token'] = AuthToken.objects.create(user)[1]
+                status_result = status.HTTP_201_CREATED
         except:
             pass
 

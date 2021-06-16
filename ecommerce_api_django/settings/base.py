@@ -81,6 +81,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ecommerce_api_django.wsgi.application'
 
 
+
+
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
@@ -150,15 +152,9 @@ MEDIA_ROOT = os.path.join(ROOT_BASE_DIR, 'media')
 # }
 
 REST_FRAMEWORK = {
-
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'knox.auth.TokenAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+           'knox.auth.TokenAuthentication',
+       ),
 }
 
 #CORS_ORIGIN_ALLOW_ALL = True
