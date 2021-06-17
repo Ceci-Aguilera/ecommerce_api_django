@@ -111,7 +111,9 @@ class Order(models.Model):
     refund_granted = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.user.email + '-' + str(self.start_date)
+        if self.user != None:
+            return self.user.email + '-' + str(self.start_date)
+        return 'Anonymous' + '-' + str(self.start_date)
 
     def get_total_cost(self):
         total_cost = 0.0

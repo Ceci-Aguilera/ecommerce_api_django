@@ -64,6 +64,9 @@ class User(AbstractUser):
     REQUIRED_FIELDS = [] #email and password are required by default
 
     def __str__(self):
-        return self.email
+        if self.email != None:
+            return self.email
+        else:
+            return 'Anonymous'
 
     objects = UserManager()

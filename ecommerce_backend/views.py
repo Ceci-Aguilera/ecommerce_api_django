@@ -45,11 +45,35 @@ def add_to_cart(request, productItem):
 
             order.items.add(productItem)
             result='Success'
-        else:
-            result='Invalid User'
 
+    # Anonymous User
     except:
-            result='Error'
+        order_pk = request.data['order_pk']
+        try:
+            order = Order.objects.get(
+                pk = order_pk,
+                ordered = False,
+                user = None
+            )
+        except:
+            try:
+                order = Order.objects.create()
+                order_pk = order.pk
+            except:
+                result='Error'
+                return result
+        for eachProduct in order.items.all():
+            if eachProduct.product == productItem.product:
+                quantity = eachProduct.quantity + productItem.quantity
+                productItem.quantity = max(0, quantity)
+                productItem.save()
+                eachProduct.order_set.remove()
+                eachProduct.delete()
+                break
+
+        order.items.add(productItem)
+        result = order_pk
+
     return result;
 
 
@@ -97,7 +121,10 @@ class ProductDetail(APIView):
             status_result = status.HTTP_201_CREATED if result=='Success' else status.HTTP_400_BAD_REQUEST
             return Response({"Add to cart result": result}, status=status_result)
         except:
-            return Response({"Add to cart result":"Error"}, status=status.HTTP_400_BAD_REQUEST)
+            orderItem = serializer.save(user=None, product=product)
+            result = add_to_cart(request=request, productItem=orderItem)
+            status_result = status.HTTP_201_CREATED if (result!='Error') else status.HTTP_400_BAD_REQUEST
+            return Response({"Add to cart result": result}, status=status_result)
 
 
 
@@ -113,14 +140,25 @@ class AllCategoriesView(APIView):
 
 class CartView(APIView):
 
-    permission_classes = [permissions.IsAuthenticated,]
+    # permission_classes = [permissions.IsAuthenticated,]
 
-    def get(self, request,*args, **kwargs):
-        pk = self.request.user.pk
-        order = Order.objects.all().get(
-            user__pk = pk,
-            ordered=False
-        )
+    def get(self, request, format=None):
+        try:
+            pk = self.request.user.pk
+            order = Order.objects.all().get(
+                user__pk = pk,
+                ordered=False
+            )
+        # Manage Anonymous User
+        except:
+            try:
+                order_pk = request.query_params.get('order_pk')
+            except:
+                return Response({}, status=status.HTTP_201_CREATED)
+            order = Order.objects.all().get(pk=order_pk)
+            if order.ordered == True:
+                return Response({}, status=status.HTTP_201_CREATED)
+
         serializer = OrderSerializerItemsOnly(order, context={'request': request})
         orderToJson = serializer.data
         return Response(orderToJson, status=status.HTTP_201_CREATED)
