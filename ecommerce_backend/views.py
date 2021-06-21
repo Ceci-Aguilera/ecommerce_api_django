@@ -84,7 +84,13 @@ def add_to_cart(request, productItem):
 class AllProductsView(APIView):
 
     def get(self, request, format=None):
-        products = Product.objects.all()
+
+        try:
+            search_params = request.query_params.get('search_keyword')
+            products = Product.objects.filter(title__icontains=search_params).defer('description')
+        except:
+            products = Product.objects.all()
+
         serializer = ProductSerializerNoDesciption(products, many=True, context={'request': request})
         productsToJson = serializer.data
         return Response(productsToJson, status=status.HTTP_201_CREATED)
@@ -111,7 +117,13 @@ class AllCategoriesView(ListAPIView):
 class ProductsFromCategory(APIView):
 
     def get(self, request, id, *args, **kwargs):
-        products = Product.objects.filter(category__id=id).defer('description')
+
+        try:
+            search_params = request.query_params.get('search_keyword')
+            products = Product.objects.filter(category__id=id, title__icontains=search_params).defer('description')
+        except:
+            products = Product.objects.filter(category__id=id).defer('description')
+
         serializer = ProductSerializerNoDesciption(products, many=True, context={'request': request})
         productsToJson = serializer.data
         return Response(productsToJson, status=status.HTTP_201_CREATED)
