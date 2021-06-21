@@ -1,4 +1,3 @@
-
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView, RetrieveAPIView
 from rest_framework import permissions
@@ -37,12 +36,7 @@ class CheckAuthenticatedView(RetrieveAPIView):
     def get_object(self):
         return self.request.user
 
-# class CheckAuthenticatedView(APIView):
-#
-#     def get(self, request, format=None):
-#         print("JSNDJSNDJSDN")
-#         print(self.request.headers['authorization'])
-#         return Response({}, status=status.HTTP_200_OK)
+
 
 
 class LoginView(GenericAPIView):

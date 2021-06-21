@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework import permissions
 from rest_framework.decorators import authentication_classes, permission_classes
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, ListAPIView
 
 import json
 
@@ -12,7 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import Product, Order, OrderItem
+from .models import Product, Order, OrderItem, Category
 from .serializers import(
     ProductSerializerNoDesciption,
     ProductSerializer,
@@ -91,13 +92,32 @@ class AllProductsView(APIView):
 
 
 
+
+
+
+
+class AllCategoriesView(ListAPIView):
+
+    serializer_class = CategorySerializer
+    model = Category
+    queryset = Category.objects.all()
+
+
+
+
+
+
+
 class ProductsFromCategory(APIView):
 
-    def get(self, request, pk, *args, **kwargs):
-        products = Product.objects.filter(category__pk=pk).defer('description')
+    def get(self, request, id, *args, **kwargs):
+        products = Product.objects.filter(category__id=id).defer('description')
         serializer = ProductSerializerNoDesciption(products, many=True, context={'request': request})
         productsToJson = serializer.data
         return Response(productsToJson, status=status.HTTP_201_CREATED)
+
+
+
 
 
 
@@ -128,13 +148,7 @@ class ProductDetail(APIView):
 
 
 
-class AllCategoriesView(APIView):
 
-    def get(self, request, format=None):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
-        categoriesToJson = serializer.data
-        return Response(categoriesToJson, status=status.HTTP_201_CREATED)
 
 
 
