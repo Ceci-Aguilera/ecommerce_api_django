@@ -16,6 +16,12 @@ from knox.models import AuthToken
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.contrib import auth
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.core.mail import EmailMessage
 
 from .models import User
 from .serializers import (
@@ -106,12 +112,54 @@ class SignUpAPIView(GenericAPIView):
                 status_result = status.HTTP_400_BAD_REQUEST
             else:
                 user = user_serializer.save()
+                user.is_active = False
+                user.save()
                 result['user'] = UserCRUDSerializer(
                     user,
                     context=self.get_serializer_context()).data
                 result['token'] = AuthToken.objects.create(user)[1]
 
+                #ACTIVATION CODE
+                user.last_uid=urlsafe_base64_encode(force_bytes(user.pk))
+                user.save()
+                user.last_token=default_token_generator.make_token(user)
+                user.save()
+
+                # current_site = get_current_site(request)
+
+                email_subject="Activate your account."
+                message=render_to_string('ecommerce_accounts_api/activate_account.html', {
+                    'user': user.email,
+                    # 'domain': current_site.domain,
+                    'uid': user.last_uid,
+                    'token':user.last_token,
+                })
+                to_email = user.email
+                email = EmailMessage(email_subject, message, to=[to_email])
+                email.send()
+
         return Response({'Register result': result}, status=status_result)
+
+
+
+
+
+
+class ActivateAccount(APIView):
+
+    def get(self, request, uid, token, format=None):
+
+        try:
+            pk = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(last_uid = uid, last_token = token, pk=pk)
+            user.is_active = True
+            user.save()
+            return Response({"Result": "Success"}, status=status.HTTP_200_OK)
+        except:
+            return Response({'Result':'Error'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 
@@ -179,12 +227,18 @@ class UserManageAccountView(APIView):
 
 
 
+
+
 class UserManageAddressView(RetrieveUpdateDestroyAPIView):
 
     permission_classes = [permissions.IsAuthenticated,]
     serializer_class = AddressSerializer
     queryset = Address.objects.all()
     lookup_field = 'id'
+
+
+
+
 
 
 class CreateAddress(GenericAPIView):
@@ -220,3 +274,50 @@ class CreateAddress(GenericAPIView):
             return Response({"Set Default Result": "Error"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"Set Default Result": "Error"}, status=status.HTTP_200_OK)
+
+
+
+
+class ResetPasswordMessage(APIView):
+
+    def post(self, request, format=None):
+        # current_site = get_current_site(request)
+        email_subject = "Reset your password"
+        try:
+            user = User.objects.get(email=request.data['email'])
+            user.last_uid_password=urlsafe_base64_encode(force_bytes(user.pk))
+            user.save()
+            user.last_token_password=default_token_generator.make_token(user)
+            user.save()
+            message=render_to_string('ecommerce_accounts_api/reset_password.html', {
+                'user': user.email,
+                # 'domain': current_site.domain,
+                'uid': user.last_uid_password,
+                'token': user.last_token_password,
+            })
+            to_email = user.email
+            email = EmailMessage(email_subject, message, to=[to_email])
+            email.send()
+            request_response='Email sent with a link to change password'
+            return Response({"Result": request_response}, status=status.HTTP_200_OK)
+
+        except:
+            return Response({"Result": "Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class ResetPassword(APIView):
+
+    def post(self, request, uid, token, format=None):
+
+        try:
+            user = User.objects.get(last_uid_password = uid, last_token_password = token)
+            password = request.data['password']
+            re_password = request.data['re_password']
+            if password != re_password:
+                return Response({'Result':'Password does not match'}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(password)
+            user.save()
+            return Response({"Result": "Success"}, status=status.HTTP_200_OK)
+        except:
+            return Response({'Result':'Error'}, status=status.HTTP_400_BAD_REQUEST)
