@@ -1,5 +1,10 @@
 from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    GenericAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateDestroyAPIView,
+    CreateAPIView
+)
 from rest_framework import permissions
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.response import Response
@@ -115,7 +120,7 @@ class UserManageAccountView(APIView):
 
     permission_classes = [permissions.IsAuthenticated,]
 
-    def delete(self, request, pk, format=None):
+    def delete(self, request, format=None):
 
         try:
             user = request.user.delete()
@@ -127,7 +132,7 @@ class UserManageAccountView(APIView):
 
 
 
-    def get(self, request, pk, format=None):
+    def get(self, request, format=None):
 
         try:
             user = request.user
@@ -159,7 +164,7 @@ class UserManageAccountView(APIView):
             status=status.HTTP_400_BAD_REQUEST)
 
 
-    def put(self, request, pk, format=None):
+    def put(self, request, format=None):
 
         try:
             user = UserCRUDSerializer(request.user, data=request.data, partial=True)
@@ -170,3 +175,48 @@ class UserManageAccountView(APIView):
         except:
             return Response({'User':"Error reading User's account"},
                 status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+class UserManageAddressView(RetrieveUpdateDestroyAPIView):
+
+    permission_classes = [permissions.IsAuthenticated,]
+    serializer_class = AddressSerializer
+    queryset = Address.objects.all()
+    lookup_field = 'id'
+
+
+class CreateAddress(GenericAPIView):
+
+    permission_classes = [permissions.IsAuthenticated,]
+    serializer_class = AddressSerializer
+
+    def post(self, request, format='None'):
+        data  = request.data
+        address_serializer = self.get_serializer(data=data)
+        address_serializer.is_valid(raise_exception=True)
+        address_serializer.save(user = request.user)
+        return Response({}, status=status.HTTP_200_OK)
+
+    def put(self, request, format='None'):
+        data = request.data
+        id = data['id']
+        address_type = data['address_type']
+        user = request.user
+
+        try:
+            old_default = Address.objects.get(default=True, address_type=address_type, user=user)
+            old_default.default=False
+            old_default.save()
+        except:
+            pass
+
+        try:
+            new_default = Address.objects.get(id=id, user=user)
+            new_default.default=True
+            new_default.save()
+        except:
+            return Response({"Set Default Result": "Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"Set Default Result": "Error"}, status=status.HTTP_200_OK)

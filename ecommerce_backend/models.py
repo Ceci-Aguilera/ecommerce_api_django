@@ -164,6 +164,7 @@ class Address(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
     street_address = models.CharField(max_length=100)
     apartment_address = models.CharField(max_length=100)
+    state_or_province = models.CharField(max_length=100, blank=True)
     country = models.CharField(max_length=100)
     zip = models.CharField(max_length=100)
     address_type = models.CharField(max_length=1, choices=ADDRESS_CHOICES)
