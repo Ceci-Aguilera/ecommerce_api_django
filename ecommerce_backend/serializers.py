@@ -93,7 +93,10 @@ class OrderSerializerItemsOnly(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
 
     items = OrderItemSerializer(many=True,read_only=True)
+    user = UserCRUDSerializer(read_only=True)
+    billing_address = AddressSerializer(read_only=True)
+    shipping_address = AddressSerializer(read_only=True)
 
     class Meta:
         model = Order
-        fields = ['items']
+        fields = '__all__'

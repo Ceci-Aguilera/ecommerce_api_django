@@ -13,13 +13,15 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import Product, Order, OrderItem, Category
+from .models import Product, Order, OrderItem, Category, Address
 from .serializers import(
     ProductSerializerNoDesciption,
     ProductSerializer,
     CategorySerializer,
     OrderItemSerializer,
     OrderSerializerItemsOnly,
+    OrderSerializer,
+    AddressSerializer,
 )
 
 
@@ -45,7 +47,7 @@ def add_to_cart(request, productItem):
                     break
 
             order.items.add(productItem)
-            result='Success'
+            result = order.pk
 
     # Anonymous User
     except:
@@ -114,6 +116,7 @@ class AllCategoriesView(ListAPIView):
 
 
 
+
 class ProductsFromCategory(APIView):
 
     def get(self, request, id, *args, **kwargs):
@@ -150,12 +153,12 @@ class ProductDetail(APIView):
         try:
             orderItem = serializer.save(user=request.user, product=product)
             result = add_to_cart(request=request, productItem=orderItem)
-            status_result = status.HTTP_201_CREATED if result=='Success' else status.HTTP_400_BAD_REQUEST
+            status_result = status.HTTP_200_OK
             return Response({"Add to cart result": result}, status=status_result)
         except:
             orderItem = serializer.save(user=None, product=product)
             result = add_to_cart(request=request, productItem=orderItem)
-            status_result = status.HTTP_201_CREATED if (result!='Error') else status.HTTP_400_BAD_REQUEST
+            status_result = status.HTTP_200_OK
             return Response({"Add to cart result": result}, status=status_result)
 
 
@@ -166,12 +169,10 @@ class ProductDetail(APIView):
 
 class CartView(APIView):
 
-    # permission_classes = [permissions.IsAuthenticated,]
-
     def get(self, request, format=None):
         try:
             pk = self.request.user.pk
-            order = Order.objects.all().get(
+            order = Order.objects.get(
                 user__pk = pk,
                 ordered=False
             )
@@ -179,10 +180,10 @@ class CartView(APIView):
         except:
             try:
                 order_pk = request.query_params.get('order_pk')
+                order = Order.objects.get(pk=order_pk)
+                if order.ordered == True or order.user != None:
+                    return Response({}, status=status.HTTP_201_CREATED)
             except:
-                return Response({}, status=status.HTTP_201_CREATED)
-            order = Order.objects.all().get(pk=order_pk)
-            if order.ordered == True:
                 return Response({}, status=status.HTTP_201_CREATED)
 
         serializer = OrderSerializerItemsOnly(order, context={'request': request})
@@ -191,18 +192,26 @@ class CartView(APIView):
 
 
     def post(self, request,*args, **kwargs):
-        pk = self.request.user.pk
-        order = Order.objects.all().get(
-            user__pk = pk,
-            ordered=False
-        )
+        try:
+            pk = self.request.user.pk
+            order = Order.objects.all().get(
+                user__pk = pk,
+                ordered=False
+            )
+        except:
+            order_pk = request.data['order_pk']
+            order = Order.objects.get(pk=order_pk)
+
         item_to_delete = request.data["item_to_delete"]
         product_pk = item_to_delete['product']['pk']
         product = Product.objects.get(pk=product_pk)
         item_to_delete = OrderItemSerializer(data=item_to_delete, context={'request':request})
         if item_to_delete.is_valid(raise_exception=True):
 
-            item_to_delete = item_to_delete.save(user=request.user, product=product)
+
+            user = None if request.user.is_anonymous else request.user
+
+            item_to_delete = item_to_delete.save(user=user, product=product)
 
             for item in order.items.all():
                 if item.product == item_to_delete.product:
@@ -219,11 +228,16 @@ class CartView(APIView):
 
 
     def delete(self, request, *args, **kwargs):
-        pk = self.request.user.pk
-        order = Order.objects.all().get(
-            user__pk = pk,
-            ordered=False
-        )
+
+        try:
+            pk = self.request.user.pk
+            order = Order.objects.all().get(
+                user__pk = pk,
+                ordered=False
+                )
+        except:
+            order_pk = request.query_params.get('order_pk')
+            order = Order.objects.get(pk=order_pk)
 
         try:
             items = order.items.all()
@@ -240,3 +254,88 @@ class CartView(APIView):
                 {"Delete cart":"Error"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+
+
+
+
+
+class Checkout(GenericAPIView):
+
+    serializer_class = OrderSerializer
+
+    def get(self, request, pk, format=None):
+
+        order = Order.objects.get(pk=pk)
+
+        try:
+            billing_address = Address.objects.get(user=request.user, address_type="B", default=True)
+            order.billing_address = billing_address
+        except:
+            pass
+
+        try:
+            shipping_address = Address.objects.get(user=request.user, address_type="S", default=True)
+            order.shipping_address = shipping_address
+        except:
+            pass
+
+        order.save()
+        order_serializer = self.get_serializer(order)
+
+        return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
+
+    def put(self, request, pk, forma=None):
+        print(request.data)
+        order = Order.objects.get(pk=pk)
+        order_serializer = self.get_serializer(order, data=request.data)
+        order_serializer.is_valid(raise_exception=True)
+        # order = order_serializer.data
+        order_serializer.save()
+        return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
+
+        # try:
+        #     order_serializer = self.get_serializer(data=request.data)
+        #     order_serializer.is_valid(raise_exception=True)
+        #     order = order_serializer.data
+        #     order.save()
+        #     return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
+        #
+        # except:
+        #     return Response({"Order Summary": "Error while updating"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
+class AllAddressesView(GenericAPIView):
+
+    serializer_class = AddressSerializer
+
+    def get(self, request, format=None):
+
+        addresses = Address.objects.all().filter(user = request.user)
+        address_serializer = self.get_serializer(addresses, many=True)
+        addresses = address_serializer.data
+        return Response({"Addresses": addresses}, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+class OrderRetrieve(RetrieveAPIView):
+
+    serializer_class = OrderSerializer
+
+    def get_object(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        order = Order.objects.get(pk=pk)
+        if order.user is not None:
+            if order.user != self.request.user:
+                return None
+        return order

@@ -30,7 +30,7 @@ from .serializers import (
     LoginSerializer
 )
 
-from ecommerce_backend.models import Address
+from ecommerce_backend.models import Address, Order
 from ecommerce_backend.serializers import AddressSerializer
 
 # Create your views here.
@@ -57,14 +57,12 @@ class LoginView(GenericAPIView):
     def post(self, request, format=None):
 
         data = request.data
-        email = data['email']
-        password = data['password']
         result = dict()
         result['flag'] = 'Error Authenticating'
         status_result = status.HTTP_400_BAD_REQUEST
 
         try:
-            user_serializer = self.get_serializer(data=data)
+            user_serializer = self.get_serializer(data=data['user'])
 
             if user_serializer.is_valid() == False:
                 result['flag'] = user_serializer.errors
@@ -243,17 +241,23 @@ class UserManageAddressView(RetrieveUpdateDestroyAPIView):
 
 class CreateAddress(GenericAPIView):
 
-    permission_classes = [permissions.IsAuthenticated,]
+    # permission_classes = [permissions.IsAuthenticated,]
     serializer_class = AddressSerializer
 
     def post(self, request, format='None'):
+        try:
+            user = request.user
+        except:
+            user = None
+
         data  = request.data
         address_serializer = self.get_serializer(data=data)
         address_serializer.is_valid(raise_exception=True)
-        address_serializer.save(user = request.user)
-        return Response({}, status=status.HTTP_200_OK)
+        address_serializer.save(user = user)
+        return Response({"Address": address_serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, format='None'):
+        print(request.data)
         data = request.data
         id = data['id']
         address_type = data['address_type']
@@ -303,6 +307,9 @@ class ResetPasswordMessage(APIView):
 
         except:
             return Response({"Result": "Error"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 

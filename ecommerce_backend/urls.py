@@ -7,6 +7,9 @@ from .views import(
     ProductDetail,
     AllCategoriesView,
     CartView,
+    Checkout,
+    AllAddressesView,
+    OrderRetrieve,
 )
 
 app_name = 'ecommerce_backend'
@@ -17,4 +20,7 @@ urlpatterns = [
     url(r'^category/products/(?P<id>[0-9]+)/$', ProductsFromCategory.as_view(), name='category-products-api'),
     url(r'^categories$', AllCategoriesView.as_view(), name='categories-api'),
     url(r'^cart$', CartView.as_view(), name='cart-api'),
+    url(r'^checkout/(?P<pk>[0-9]+)/$', Checkout.as_view(), name='checkout-view'),
+    url(r'^account-addresses$', AllAddressesView.as_view(), name='addresses-view'),
+    url(r'^account-order/(?P<pk>[0-9]+)/$', OrderRetrieve.as_view(), name='order-view'),
 ]
