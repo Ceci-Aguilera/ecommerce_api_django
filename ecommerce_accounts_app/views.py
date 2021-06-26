@@ -241,7 +241,6 @@ class UserManageAddressView(RetrieveUpdateDestroyAPIView):
 
 class CreateAddress(GenericAPIView):
 
-    # permission_classes = [permissions.IsAuthenticated,]
     serializer_class = AddressSerializer
 
     def post(self, request, format='None'):
@@ -257,7 +256,6 @@ class CreateAddress(GenericAPIView):
         return Response({"Address": address_serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, format='None'):
-        print(request.data)
         data = request.data
         id = data['id']
         address_type = data['address_type']

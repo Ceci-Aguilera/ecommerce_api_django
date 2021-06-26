@@ -148,7 +148,7 @@ class Payment(models.Model):
 #   COUPON
 # ==============================================================================
 class Coupon(models.Model):
-    code = models.CharField(max_length=15)
+    code = models.CharField(max_length=256)
     amount = models.FloatField(default=0.0)
 
     def __str__(self):

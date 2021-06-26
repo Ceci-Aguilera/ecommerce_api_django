@@ -269,17 +269,18 @@ class Checkout(GenericAPIView):
 
         order = Order.objects.get(pk=pk)
 
-        try:
-            billing_address = Address.objects.get(user=request.user, address_type="B", default=True)
-            order.billing_address = billing_address
-        except:
-            pass
-
-        try:
-            shipping_address = Address.objects.get(user=request.user, address_type="S", default=True)
-            order.shipping_address = shipping_address
-        except:
-            pass
+        if order.billing_address == None:
+            try:
+                billing_address = Address.objects.get(user=request.user, address_type="B", default=True)
+                order.billing_address = billing_address
+            except:
+                pass
+        if order.shipping_address == None:
+            try:
+                shipping_address = Address.objects.get(user=request.user, address_type="S", default=True)
+                order.shipping_address = shipping_address
+            except:
+                pass
 
         order.save()
         order_serializer = self.get_serializer(order)
@@ -287,23 +288,35 @@ class Checkout(GenericAPIView):
         return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
 
     def put(self, request, pk, forma=None):
-        print(request.data)
-        order = Order.objects.get(pk=pk)
-        order_serializer = self.get_serializer(order, data=request.data)
-        order_serializer.is_valid(raise_exception=True)
-        # order = order_serializer.data
-        order_serializer.save()
-        return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
 
         # try:
-        #     order_serializer = self.get_serializer(data=request.data)
-        #     order_serializer.is_valid(raise_exception=True)
-        #     order = order_serializer.data
-        #     order.save()
-        #     return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
-        #
+        if(True):
+            order = Order.objects.get(pk=pk)
+            if order.user is not None:
+                if order.user != request.user:
+                    return Response({"Order Summary": "Error while updating"}, status=status.HTTP_400_BAD_REQUEST)
+            # BILLING AND SHIPPING ADDRESSES
+            try:
+                billing_address_id = request.data['billing_address']['id']
+                order.billing_address = Address.objects.get(id = billing_address_id)
+                order.save()
+            except:
+                pass
+
+            try:
+                shipping_address_id = request.data['shipping_address']['id']
+                order.shipping_address = Address.objects.get(id = shipping_address_id)
+                order.save()
+            except:
+                pass
+
+            order_serializer = self.get_serializer(order)
+            return Response({"Order Summary": order_serializer.data}, status=status.HTTP_200_OK)
+
+
         # except:
-        #     return Response({"Order Summary": "Error while updating"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Order Summary": "Error while updating"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -317,10 +330,15 @@ class AllAddressesView(GenericAPIView):
 
     def get(self, request, format=None):
 
-        addresses = Address.objects.all().filter(user = request.user)
-        address_serializer = self.get_serializer(addresses, many=True)
-        addresses = address_serializer.data
-        return Response({"Addresses": addresses}, status=status.HTTP_200_OK)
+        billing_addresses = Address.objects.all().filter(user = request.user, address_type="B")
+        shipping_addresses = Address.objects.all().filter(user = request.user, address_type="S")
+
+        billing_addresses_serializer = self.get_serializer(billing_addresses, many=True)
+        billing_addresses = billing_addresses_serializer.data
+
+        shipping_addresses_serializer = self.get_serializer(shipping_addresses, many=True)
+        shipping_addresses = shipping_addresses_serializer.data
+        return Response({"Billing_addresses": billing_addresses, "Shipping_addresses":shipping_addresses}, status=status.HTTP_200_OK)
 
 
 
