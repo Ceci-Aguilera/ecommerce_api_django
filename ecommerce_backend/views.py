@@ -274,6 +274,8 @@ class Checkout(GenericAPIView):
 
         order = Order.objects.get(pk=pk)
 
+        print(order)
+
         if order.billing_address == None:
             try:
                 billing_address = Address.objects.get(user=request.user, address_type="B", default=True)
@@ -385,7 +387,7 @@ class PaymentView(GenericAPIView):
 
 
     def post(self, request, pk, format=None):
-        if True:
+        try:
             order = Order.objects.get(pk=pk)
 
             amount = int(order.get_total_cost() * 100)
@@ -478,23 +480,23 @@ class PaymentView(GenericAPIView):
             order.save()
             return Response({"Result":"Success"}, status=status.HTTP_200_OK)
 
-        # except stripe.error.CardError as e:
-        #     return Response({"Result":"Error with card during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except stripe.error.RateLimitError as e:
-        #     return Response({"Result":"Rate Limit error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except stripe.error.InvalidRequestError as e:
-        #     return Response({"Result":"Invalid request error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except stripe.error.AuthenticationError as e:
-        #     return Response({"Result":"Authentication error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except stripe.error.APIConnectionError as e:
-        #     return Response({"Result":"API connection error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except stripe.error.StripeError as e:
-        #     return Response({"Result":"Something went wrong during payment"}, status=status.HTTP_400_BAD_REQUEST)
-        #
-        # except:
-        #     return Response({"Result":"Error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        except stripe.error.CardError as e:
+            return Response({"Result":"Error with card during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.RateLimitError as e:
+            return Response({"Result":"Rate Limit error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.InvalidRequestError as e:
+            return Response({"Result":"Invalid request error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.AuthenticationError as e:
+            return Response({"Result":"Authentication error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.APIConnectionError as e:
+            return Response({"Result":"API connection error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except stripe.error.StripeError as e:
+            return Response({"Result":"Something went wrong during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except:
+            return Response({"Result":"Error during payment"}, status=status.HTTP_400_BAD_REQUEST)
