@@ -388,7 +388,7 @@ class PaymentView(GenericAPIView):
 
     def post(self, request, pk, format=None):
         try:
-            order = Order.objects.get(pk=pk)
+            order = Order.objects.get(pk=pk, ordered=False)
 
             amount = int(order.get_total_cost() * 100)
 
@@ -500,3 +500,14 @@ class PaymentView(GenericAPIView):
 
         except:
             return Response({"Result":"Error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+class AllOrders(ListAPIView):
+
+    permission_classes = [permissions.IsAuthenticated,]
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+    serializer_class = OrderSerializer

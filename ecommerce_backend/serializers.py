@@ -97,6 +97,15 @@ class OrderSerializer(serializers.ModelSerializer):
     user = UserCRUDSerializer(read_only=True)
     billing_address = AddressSerializer(read_only=True)
     shipping_address = AddressSerializer(read_only=True)
+    total_cost = serializers.SerializerMethodField('get_total_cost')
+
+    def get_total_cost(self, obj):
+        total_cost = 0.0
+        for order_item in obj.items.all():
+            total_cost += order_item.get_final_price()
+        if obj.coupon:
+            total_cost -= max(0, (self.coupon.amount))
+        return total_cost
 
     class Meta:
         model = Order
