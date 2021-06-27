@@ -10,6 +10,7 @@ from .views import(
     Checkout,
     AllAddressesView,
     OrderRetrieve,
+    PaymentView,
 )
 
 app_name = 'ecommerce_backend'
@@ -23,4 +24,5 @@ urlpatterns = [
     url(r'^checkout/(?P<pk>[0-9]+)/$', Checkout.as_view(), name='checkout-view'),
     url(r'^account-addresses$', AllAddressesView.as_view(), name='addresses-view'),
     url(r'^account-order/(?P<pk>[0-9]+)/$', OrderRetrieve.as_view(), name='order-view'),
+    url(r'^payment/(?P<pk>[0-9]+)/$', PaymentView.as_view(), name='payment-view'),
 ]

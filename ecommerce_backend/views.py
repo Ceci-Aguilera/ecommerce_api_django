@@ -385,40 +385,12 @@ class PaymentView(GenericAPIView):
 
 
     def post(self, request, pk, format=None):
-        try:
+        if True:
             order = Order.objects.get(pk=pk)
+
             amount = int(order.get_total_cost() * 100)
 
-            if order.user is not None:
-                if order.user != request.user:
-                    return Response({"Result":"Error authenticating user"}, status=status.HTTP_400_BAD_REQUEST)
-
-                #If user is not anonymous and wants to save the payment credentials for shopping faster
-                else:
-                    user = request.user
-                    if request.data['save_payment_info']:
-                        print("Saving previous data")
-                        #Check if user already exists
-                        user.one_click_purchasing = True
-                        if user.stripe_customer_id != '' and user.stripe_customer_id != None:
-                            actual_customer = stripe.Customer.retrieve(
-                                user.stripe_customer_id
-                            )
-                        else:
-                            customer = stripe.Customer.create(
-                                email=user.email,
-                            )
-                        user.stripe_customer_id = customer['id']
-                        user.save()
-
-                        charge = stripe.Charge.create(
-                            amount=amount,
-                            currency="usd",
-                            customer=user.stripe_customer_id
-                        )
-
-            if request.data['save_payment_info'] == False:
-                print("Entering payment data manually")
+            if order.user==None or order.user.one_click_purchasing == False:
                 card_num = request.data['card_num']
                 exp_month = request.data['exp_month']
                 exp_year = request.data['exp_year']
@@ -432,6 +404,59 @@ class PaymentView(GenericAPIView):
                     "cvc": cvc
                   },
                 )
+
+            if order.user is not None:
+                if order.user != request.user:
+                    return Response({"Result":"Error authenticating user"}, status=status.HTTP_400_BAD_REQUEST)
+
+                else:
+                    user = request.user
+
+                    if user.one_click_purchasing:
+                        customer = stripe.Customer.retrieve(
+                            user.stripe_customer_id,
+                        )
+
+                        charge = stripe.Charge.create(
+                            amount=amount,
+                            currency="usd",
+                            customer=user.stripe_customer_id
+                        )
+
+                        return Response({"Result":"Success"}, status=status.HTTP_200_OK)
+
+                    #If user is not anonymous and wants to save the payment credentials for shopping faster
+                    if request.data['save_payment_info']:
+
+                        #Check if user already exists
+                        user.one_click_purchasing = True
+                        customer = None
+                        if user.stripe_customer_id != '' and user.stripe_customer_id != None:
+
+                            print("Old customer")
+                            stripe.Customer.modify(
+                                user.stripe_customer_id,
+                                source=token
+                            )
+                            customer = stripe.Customer.retrieve(
+                                user.stripe_customer_id,
+                            )
+                        else:
+                            print("New Customer")
+                            customer = stripe.Customer.create(
+                                email=user.email,
+                                source=token
+                            )
+                        user.stripe_customer_id = customer['id']
+                        user.save()
+
+                        charge = stripe.Charge.create(
+                            amount=amount,
+                            currency="usd",
+                            customer=user.stripe_customer_id
+                        )
+
+            if request.data['save_payment_info'] == False:
 
                 charge = stripe.Charge.create(
                     amount=amount,
@@ -453,23 +478,23 @@ class PaymentView(GenericAPIView):
             order.save()
             return Response({"Result":"Success"}, status=status.HTTP_200_OK)
 
-        except stripe.error.CardError as e:
-            return Response({"Result":"Error with card during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.RateLimitError as e:
-            return Response({"Result":"Rate Limit error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.InvalidRequestError as e:
-            return Response({"Result":"Invalid request error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.AuthenticationError as e:
-            return Response({"Result":"Authentication error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.APIConnectionError as e:
-            return Response({"Result":"API connection error during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except stripe.error.StripeError as e:
-            return Response({"Result":"Something went wrong during payment"}, status=status.HTTP_400_BAD_REQUEST)
-
-        except:
-            return Response({"Result":"Error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        # except stripe.error.CardError as e:
+        #     return Response({"Result":"Error with card during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except stripe.error.RateLimitError as e:
+        #     return Response({"Result":"Rate Limit error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except stripe.error.InvalidRequestError as e:
+        #     return Response({"Result":"Invalid request error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except stripe.error.AuthenticationError as e:
+        #     return Response({"Result":"Authentication error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except stripe.error.APIConnectionError as e:
+        #     return Response({"Result":"API connection error during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except stripe.error.StripeError as e:
+        #     return Response({"Result":"Something went wrong during payment"}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # except:
+        #     return Response({"Result":"Error during payment"}, status=status.HTTP_400_BAD_REQUEST)

@@ -67,13 +67,13 @@ class OrderItem(models.Model):
             return self.quantity * self.product.price
         return 0
 
-    def get_total_discount_product_price(self):
-        return self.get_total_product_price() - self.get_total_discount_product_price()
-
-
     def get_amount_saved(self):
+        return self.quantity * self.product.discount_price
+
+
+    def get_total_discount_product_price(self):
         if self.product is not None:
-            return self.quantity * self.product.discount_price
+            return self.get_total_product_price() - self.get_amount_saved()
         return 0
 
     def get_final_price(self):
@@ -120,7 +120,7 @@ class Order(models.Model):
         for order_item in self.items.all():
             total_cost += order_item.get_final_price()
         if self.coupon:
-            total_cost = max(0, (self.coupon.amount))
+            total_cost -= max(0, (self.coupon.amount))
         return total_cost
 
 

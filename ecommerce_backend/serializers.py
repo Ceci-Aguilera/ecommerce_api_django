@@ -59,16 +59,17 @@ class OrderItemSerializer(serializers.ModelSerializer):
             return obj.quantity * obj.product.price
         return 0
 
-    def get_total_discount_product_price(self, obj):
-        if obj.product is not None:
-            return (obj.quantity * obj.product.price) - (obj.quantity * obj.product.discount_price)
-        return 0
-
 
     def get_amount_saved(self, obj):
         if obj.product is not None:
             return obj.quantity * obj.product.discount_price
         return 0
+
+    def get_total_discount_product_price(self, obj):
+        if obj.product is not None:
+            return (obj.quantity * obj.product.price) - (obj.quantity * obj.product.discount_price)
+        return 0
+
 
     def get_final_price(self, obj):
         if obj.product is not None:
@@ -107,7 +108,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class PaymentSerializer(serializers.ModelSerializer):
 
     user = UserCRUDSerializer(read_only=True)
-    
+
     class Meta:
         model = Payment
         fields = '__all__'
