@@ -111,7 +111,7 @@ class Order(models.Model):
     refund_granted = models.BooleanField(default=False)
 
     def __str__(self):
-        if self.user != None:
+        if self.user is not None:
             return self.user.email + '-' + str(self.start_date)
         return 'Anonymous' + '-' + str(self.start_date)
 
@@ -138,9 +138,10 @@ class Payment(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.email
+        if self.user is not None:
+            return self.user.email
 
-
+        return 'Anonymous' + '-' + str(self.timestamp)
 
 
 
@@ -190,4 +191,4 @@ class Refund(models.Model):
     email = models.EmailField()
 
     def __str__(self):
-        return f"{self.pk}"
+        return f"{self.pk} - {self.email}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Category, Product, Address, OrderItem, Order, Payment
+from .models import User, Category, Product, Address, OrderItem, Order, Payment, Refund
 from ecommerce_accounts_app.serializers import UserCRUDSerializer
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -98,6 +98,7 @@ class OrderSerializer(serializers.ModelSerializer):
     billing_address = AddressSerializer(read_only=True)
     shipping_address = AddressSerializer(read_only=True)
     total_cost = serializers.SerializerMethodField('get_total_cost')
+    pk = serializers.IntegerField(read_only=True)
 
     def get_total_cost(self, obj):
         total_cost = 0.0
@@ -120,4 +121,16 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
+        fields = '__all__'
+
+
+
+class RefundSerializer(serializers.ModelSerializer):
+
+    order = OrderSerializer(read_only=True)
+    reason = serializers.CharField(max_length=255)
+    email = serializers.CharField(max_length=255)
+
+    class Meta:
+        model = Refund
         fields = '__all__'

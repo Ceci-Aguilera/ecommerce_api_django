@@ -12,6 +12,7 @@ from .views import(
     OrderRetrieve,
     PaymentView,
     AllOrders,
+    CreateRefund,
 )
 
 app_name = 'ecommerce_backend'
@@ -27,4 +28,5 @@ urlpatterns = [
     url(r'^account-order/(?P<pk>[0-9]+)/$', OrderRetrieve.as_view(), name='order-view'),
     url(r'^payment/(?P<pk>[0-9]+)/$', PaymentView.as_view(), name='payment-view'),
     url(r'^user-orders/$', AllOrders.as_view(), name='user-orders-view'),
+    url(r'^create-refund/(?P<pk>[0-9]+)/$', CreateRefund.as_view(), name='create-refund-view'),
 ]

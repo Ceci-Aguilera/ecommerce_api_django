@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework import permissions
 from rest_framework.decorators import authentication_classes, permission_classes
-from rest_framework.generics import GenericAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, ListAPIView, CreateAPIView
 
 import json
 
@@ -13,7 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.core.mail import send_mail
 
-from .models import Product, Order, OrderItem, Category, Address, Payment
+from .models import Product, Order, OrderItem, Category, Address, Payment, Refund
 from .serializers import(
     ProductSerializerNoDesciption,
     ProductSerializer,
@@ -23,6 +23,7 @@ from .serializers import(
     OrderSerializer,
     AddressSerializer,
     PaymentSerializer,
+    RefundSerializer,
 )
 
 
@@ -368,6 +369,8 @@ class OrderRetrieve(RetrieveAPIView):
 
 
 
+
+
 class PaymentView(GenericAPIView):
     serializer_class = PaymentSerializer
 
@@ -511,3 +514,23 @@ class AllOrders(ListAPIView):
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
     serializer_class = OrderSerializer
+
+
+
+class CreateRefund(GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated,]
+    serializer_class = RefundSerializer
+
+    def post(self, request, pk, format=None):
+        try:
+            order = Order.objects.get(pk=pk)
+            if order.refund_requested:
+                return Response({"Result":"Order has already been asked for refund"}, status=status.HTTP_400_BAD_REQUEST)
+            refund_serializer = self.get_serializer(data=request.data)
+            refund_serializer.is_valid(raise_exception=True)
+            refund_serializer.save(order=order)
+            order.refund_requested=True
+            order.save()
+            return Response({"Result":"Success"}, status=status.HTTP_200_OK)
+        except:
+            return Response({"Result":"Error asking for refund"}, status=status.HTTP_400_BAD_REQUEST)
