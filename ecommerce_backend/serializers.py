@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Category, Product, Address, OrderItem, Order
+from .models import User, Category, Product, Address, OrderItem, Order, Payment
 from ecommerce_accounts_app.serializers import UserCRUDSerializer
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -99,4 +99,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
+        fields = '__all__'
+
+
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    user = UserCRUDSerializer(read_only=True)
+    
+    class Meta:
+        model = Payment
         fields = '__all__'

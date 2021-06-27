@@ -48,7 +48,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=256)
     last_name = models.CharField(max_length=256)
     stripe_customer_id = models.CharField(max_length=50, blank=True, null=True)
-    one_click_purchasing = models.BooleanField(default=True)
+    one_click_purchasing = models.BooleanField(default=False)
     phone = models.CharField(
         verbose_name='phone',
         max_length=20,
