@@ -275,8 +275,6 @@ class Checkout(GenericAPIView):
 
         order = Order.objects.get(pk=pk)
 
-        print(order)
-
         if order.billing_address == None:
             try:
                 billing_address = Address.objects.get(user=request.user, address_type="B", default=True)
