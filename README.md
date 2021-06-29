@@ -8,6 +8,7 @@ This is a single vendor ecommerce api developed with Django(DRF) and a PostgreSQ
 * [Readme Files](#readme)
 * [Project Apps](#projectApps)
 * [Run the Project](#run)
+* [Some helpful extra documentation to read](#extraDocs)
 
 
 ## <a name="overview"></a> Overview
@@ -92,3 +93,18 @@ Steps for running the project locally:
 5. Create __.env__ file and add the variables specified in the __Settings.py File Section__
 6. Run the migrations
 7. Run server
+
+## <a name="extraDocs"></a> Some helpful extra documentation to read
+
+#### About the Knox Authentication Tokes : [django-rest-knox official documentation at Github](https://github.com/James1345/django-rest-knox/tree/master/docs)
+
+#### How to customize stripe implementation :  [Stripe official documentation for Developer Tools](https://stripe.com/docs/development)
+
+#### Django Rest Framework : [Django REST Framework official docs](https://www.django-rest-framework.org/) and [Classy DRF](https://www.cdrf.co/)
+
+#### Django : [Django official docs](https://docs.djangoproject.com/en/3.2/)
+
+#### Miscellaneous:
+- [Customizing the User Model with best practices](https://www.codingforentrepreneurs.com/blog/how-to-create-a-custom-django-user-model)
+- [Improve Django settings configuration with these best practices](https://www.freecodecamp.org/news/improve-your-django-project-with-these-best-practices-47fd60a7bff3/)
+- [Build an Effective E-Commerce Metrics Dashboard](https://www.adroll.com/blog/growth-marketing/how-to-build-an-effective-e-commerce-metrics-dashboard)

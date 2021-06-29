@@ -2,7 +2,7 @@
 
 ### add_to_cart:
 
-This is the only non-class based view. It simply add a new amount of a product to the cart. If the cart is empty, then it creates a new Order (Cart in this case).
+This is the only non-class based view. It simply adds a new amount of a product to the cart. If the cart is empty, then it creates a new Order (Cart in this case).
 
 
 ### AllProductsView, ProductsFromCategory:
