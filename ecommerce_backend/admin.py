@@ -59,14 +59,28 @@ class AddressAdmin(admin.ModelAdmin):
     list_filter = ['default', 'address_type', 'country']
     search_fields = ['user', 'street_address', 'apartment_address', 'zip']
 
+class PaymentAdmin(admin.ModelAdmin):
 
+    readonly_fields = ['timestamp',]
 
+    fieldsets = (
+            (None, {'fields': ('user', 'stripe_charge_id', 'amount','timestamp')}),
+        )
+
+    list_display = [
+        'user',
+        'amount',
+        'timestamp'
+    ]
+
+    list_filter = ['user', 'timestamp']
+    search_fields = ['user', 'timestamp']
 
 # Register Models Here
 admin.site.register(Product)
 admin.site.register(OrderItem)
 admin.site.register(Order, OrderAdmin)
-admin.site.register(Payment)
+admin.site.register(Payment, PaymentAdmin)
 admin.site.register(Address, AddressAdmin)
 admin.site.register(Coupon)
 admin.site.register(Refund)

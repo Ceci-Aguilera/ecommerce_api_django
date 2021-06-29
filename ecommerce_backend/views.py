@@ -479,6 +479,10 @@ class PaymentView(GenericAPIView):
             order.ordered = True
             order.payment = payment
             order.save()
+            for item in order.items.all():
+                item.product.amount_sold += item.quantity
+                item.product.save()
+
             return Response({"Result":"Success"}, status=status.HTTP_200_OK)
 
         except stripe.error.CardError as e:

@@ -39,6 +39,7 @@ class Product(models.Model):
     discount_price = models.FloatField(default=0.0)
     description = models.TextField()
     image = models.ImageField(upload_to='uploads/products/')
+    amount_sold = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
