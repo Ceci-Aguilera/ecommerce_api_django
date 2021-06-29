@@ -7,13 +7,13 @@ The category model registers the category of a product which will help for featu
 
 ### Product Model
 
-The product model initailly takes as parameters the title(name of product), price, category, discount price, image to show, and the description of itself. It is intended to be an abstract represntation of a general product, and so it can be further modified to adapt to a more particular scenario
+The product model initially takes as parameters the title(name of product), price, category, discount price, image to show, and the description of itself. It is intended to be an abstract representation of a general product, and so it can be further modified to adapt to a more particular scenario
 
 ### Order Item Model
 
 The objective of this model is to help the CRUD operations of the client's cart, and to help simplifying the __Order Model__. It manages the amount of a product in the __Cart__, and it is linked to the __User__ (can be **null** if user is not logged in).
 
-It is automaticaly created when a user adds an item to the __Cart__
+It is automatically created when a user adds an item to the __Cart__
 
 
 
